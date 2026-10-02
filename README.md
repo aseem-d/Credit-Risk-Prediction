@@ -1,5 +1,7 @@
 # Credit Risk Prediction
 
+**Live dashboard:** [Open the Streamlit app](https://credit-risk-prediction-aseemd.streamlit.app)
+
 ## Overview
 
 An educational machine learning project using the Give Me Some Credit dataset to estimate the probability of serious delinquency within the next two years. It includes the full analysis notebook and a Streamlit dashboard backed by the notebook's selected unweighted XGBoost pipeline.
@@ -39,7 +41,7 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-The app loads `models/final_xgb_model.joblib` and reads metrics and calibration coordinates from `results/`. It does not train or evaluate models at startup. Update `GITHUB_URL` in `app.py` when the repository URL exists.
+The app loads `models/final_xgb_model.joblib` and reads metrics and calibration coordinates from `results/`. It does not train or evaluate models at startup. The dashboard also links back to this GitHub repository.
 
 ## Reproducing the notebook
 
