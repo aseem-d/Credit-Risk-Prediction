@@ -4,11 +4,11 @@
 
 ## Overview
 
-An educational machine learning project using the Give Me Some Credit dataset to estimate the probability of serious delinquency within the next two years. It includes the full analysis notebook and a Streamlit dashboard backed by the notebook's selected unweighted XGBoost pipeline.
+A lender-facing analytics project using the Give Me Some Credit dataset to estimate serious-delinquency risk within the next two years. It includes the full analysis notebook and a Streamlit dashboard backed by the notebook's selected unweighted XGBoost pipeline. The dashboard presents risk bands and model evidence to support review; it does not issue an approval or rejection decision.
 
 ## Objective
 
-Estimate the probability of serious delinquency within two years. The application reports a model probability and does not make approval, rejection, or other lending decisions.
+Estimate the probability of serious delinquency within two years and provide model context for a lender's review. The application does not make approval or rejection decisions; lenders must weigh their own product economics and risk appetite.
 
 ## Dataset
 
@@ -41,7 +41,7 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-The app loads `models/final_xgb_model.joblib` and reads metrics and calibration coordinates from `results/`. It does not train or evaluate models at startup. The dashboard also links back to this GitHub repository.
+The app loads `models/final_xgb_model.joblib` and reads evaluation summaries from `results/`. It does not train or reevaluate models at startup. The dashboard includes applicant risk assessment, a data dictionary, per-variable distributions with SHAP explanations, model performance, recall across thresholds, a confusion matrix, and calibration. Its low, medium, and high probability bands organize results but do not determine lending decisions. The About section links to the project repository, Aseem Deshpande's GitHub profile, and LinkedIn.
 
 ## Reproducing the notebook
 

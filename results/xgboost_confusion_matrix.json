@@ -1,0 +1,24 @@
+{
+  "source": "same held-out test evaluation as notebook; threshold=0.5",
+  "threshold": 0.5,
+  "labels": [
+    "No serious delinquency",
+    "Serious delinquency"
+  ],
+  "matrix": [
+    [
+      27715,
+      280
+    ],
+    [
+      1595,
+      410
+    ]
+  ],
+  "counts": {
+    "true_negative": 27715,
+    "false_positive": 280,
+    "false_negative": 1595,
+    "true_positive": 410
+  }
+}

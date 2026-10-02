@@ -3,6 +3,7 @@ from pathlib import Path
 
 import joblib
 import pandas as pd
+from xgboost import DMatrix
 
 ROOT = Path(__file__).resolve().parents[1]
 MODEL_PATH = ROOT / "models" / "final_xgb_model.joblib"
@@ -40,3 +41,30 @@ def predict_probability(values: dict, model=None) -> float:
     """Return estimated probability for a dict of raw user-entered features."""
     model = model or load_model()
     return float(model.predict_proba(build_model_input(values))[0, 1])
+
+
+def explain_prediction(values: dict, model=None) -> dict:
+    """Return transformed input features and XGBoost TreeSHAP contributions.
+
+    XGBoost's ``pred_contribs`` returns TreeSHAP values in raw-margin (log-odds)
+    space, including a final baseline contribution.
+    """
+    model = model or load_model()
+    raw_row = build_model_input(values)
+    transformed = model.named_steps["preprocessor"].transform(raw_row)
+    feature_names = model.named_steps["preprocessor"].get_feature_names_out()
+    contribution_values = model.named_steps["classifier"].get_booster().predict(
+        DMatrix(transformed), pred_contribs=True
+    )[0]
+
+    features = {}
+    for name, value, contribution in zip(feature_names, transformed[0], contribution_values[:-1]):
+        feature_name = name.split("__", 1)[-1]
+        features[feature_name] = {
+            "model_value": float(value),
+            "shap_value": float(contribution),
+        }
+    return {
+        "features": features,
+        "baseline_value": float(contribution_values[-1]),
+    }

@@ -1,0 +1,65 @@
+{
+  "source": "notebooks/credit_risk_analysis.ipynb; saved xgb_metrics_df output on shared held-out test set",
+  "rows": [
+    {
+      "threshold": 0.05,
+      "accuracy": 0.7389,
+      "precision": 0.183123,
+      "recall": 0.8399
+    },
+    {
+      "threshold": 0.1,
+      "accuracy": 0.862933,
+      "precision": 0.282918,
+      "recall": 0.684788
+    },
+    {
+      "threshold": 0.15,
+      "accuracy": 0.902667,
+      "precision": 0.358403,
+      "recall": 0.577556
+    },
+    {
+      "threshold": 0.2,
+      "accuracy": 0.917867,
+      "precision": 0.407123,
+      "recall": 0.501746
+    },
+    {
+      "threshold": 0.25,
+      "accuracy": 0.925967,
+      "precision": 0.446108,
+      "recall": 0.445885
+    },
+    {
+      "threshold": 0.3,
+      "accuracy": 0.9316,
+      "precision": 0.485358,
+      "recall": 0.388529
+    },
+    {
+      "threshold": 0.35,
+      "accuracy": 0.9341,
+      "precision": 0.510853,
+      "recall": 0.328678
+    },
+    {
+      "threshold": 0.4,
+      "accuracy": 0.935667,
+      "precision": 0.535278,
+      "recall": 0.283791
+    },
+    {
+      "threshold": 0.45,
+      "accuracy": 0.936767,
+      "precision": 0.561927,
+      "recall": 0.244389
+    },
+    {
+      "threshold": 0.5,
+      "accuracy": 0.9375,
+      "precision": 0.594203,
+      "recall": 0.204489
+    }
+  ]
+}
