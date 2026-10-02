@@ -9,10 +9,11 @@ import streamlit as st
 from src.model import predict_probability
 
 ROOT = Path(__file__).resolve().parent
-GITHUB_URL = "YOUR_REPOSITORY_URL"
+GITHUB_URL = "https://github.com/aseem-d/Credit-Risk-Prediction"
 
 st.set_page_config(page_title="Credit Risk Prediction", page_icon="📊", layout="wide")
 st.title("Credit Risk Prediction")
+st.caption("A project by Aseem Deshpande")
 st.write("Explore an estimated probability of serious delinquency within the next two years.")
 
 with st.form("risk_inputs"):
@@ -51,17 +52,37 @@ if submitted:
     except FileNotFoundError as exc:
         st.error(f"The model artifact is missing. {exc}")
 
-st.divider()
-st.subheader("Model performance")
 with (ROOT / "results" / "model_metrics.json").open() as f:
     evaluation = json.load(f)
 metrics = pd.DataFrame(evaluation["models"])
+
+with st.expander("About the model"):
+    st.markdown("""The deployed model is an **unweighted XGBoost** classifier selected in the analysis. Logistic Regression and Random Forest were also compared. The target is serious delinquency within two years. Evaluation included ROC-AUC, Average Precision, calibration curves and Brier score. This is a predictive and educational project, not a real lending decision system.""")
+
+st.divider()
+st.subheader("Model performance")
 col1, col2 = st.columns(2)
 with col1:
     fig = px.bar(metrics, x="name", y="roc_auc", title="ROC-AUC", labels={"name": "Model", "roc_auc": "ROC-AUC"}, color="name")
+    for trace in fig.data:
+        if trace.name == "XGBoost":
+            trace.name = "<b>XGBoost</b>"
+    fig.update_xaxes(
+        tickmode="array",
+        tickvals=["XGBoost", "Logistic Regression", "Random Forest"],
+        ticktext=["<b>XGBoost</b>", "Logistic Regression", "Random Forest"],
+    )
     st.plotly_chart(fig, width="stretch")
 with col2:
     fig = px.bar(metrics, x="name", y="average_precision", title="Average Precision", labels={"name": "Model", "average_precision": "Average Precision"}, color="name")
+    for trace in fig.data:
+        if trace.name == "XGBoost":
+            trace.name = "<b>XGBoost</b>"
+    fig.update_xaxes(
+        tickmode="array",
+        tickvals=["XGBoost", "Logistic Regression", "Random Forest"],
+        ticktext=["<b>XGBoost</b>", "Logistic Regression", "Random Forest"],
+    )
     st.plotly_chart(fig, width="stretch")
 
 # Calibration coordinates are saved from the notebook's shared held-out predictions.
@@ -71,15 +92,20 @@ if curve_path.exists():
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=[0, 1], y=[0, 1], mode="lines", name="Perfect calibration", line={"dash": "dash", "color": "gray"}))
     for model_name, values in curves.items():
-        fig.add_trace(go.Scatter(x=values["mean_predicted"], y=values["observed_frequency"], mode="lines+markers", name=model_name))
+        label = "<b>XGBoost</b>" if model_name == "XGBoost" else model_name
+        fig.add_trace(go.Scatter(x=values["mean_predicted"], y=values["observed_frequency"], mode="lines+markers", name=label))
     fig.update_layout(title="Calibration on the held-out test set", xaxis_title="Mean predicted probability", yaxis_title="Observed frequency")
     st.plotly_chart(fig, width="stretch")
 else:
     st.info("Calibration points are exported when the notebook's final evaluation section is run.")
-st.dataframe(metrics.rename(columns={"name": "Model", "roc_auc": "ROC-AUC", "average_precision": "Average Precision", "brier_score": "Brier Score"}).set_index("Model").style.format("{:.4f}"), width="stretch")
-
-with st.expander("About the model"):
-    st.markdown("""The deployed model is an **unweighted XGBoost** classifier selected in the analysis. Logistic Regression and Random Forest were also compared. The target is serious delinquency within two years. Evaluation included ROC-AUC, Average Precision, calibration curves and Brier score. This is a predictive and educational project, not a real lending decision system.""")
+display_metrics = metrics.set_index("name").reindex(["XGBoost", "Logistic Regression", "Random Forest"])
+display_metrics.index.name = "Model"
+display_style = display_metrics.rename(columns={"roc_auc": "ROC-AUC", "average_precision": "Average Precision", "brier_score": "Brier Score"}).style.format("{:.4f}")
+display_style = display_style.apply(
+    lambda row: ["font-weight: bold" if row.name == "XGBoost" else "" for _ in row],
+    axis=1,
+)
+st.dataframe(display_style, width="stretch")
 if GITHUB_URL != "YOUR_REPOSITORY_URL":
     st.sidebar.markdown(f"[View the project on GitHub]({GITHUB_URL})")
 else:
