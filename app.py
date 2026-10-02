@@ -142,10 +142,16 @@ with assessment_tab:
         try:
             deployed_model = get_model()
             probability = predict_probability(raw, deployed_model)
-            explanation = explain_prediction(raw, deployed_model)
+            try:
+                explanation = explain_prediction(raw, deployed_model)
+            except Exception:
+                # The probability is useful even if the runtime cannot load
+                # the optional SHAP explanation path.
+                explanation = None
+                st.warning("The probability was calculated, but case-specific SHAP details are unavailable in this runtime.")
             st.session_state["risk_case"] = {"inputs": raw, "probability": probability, "explanation": explanation}
-        except FileNotFoundError as exc:
-            st.error(f"The model artifact is missing. {exc}")
+        except Exception as exc:
+            st.error(f"The risk estimate could not be calculated ({type(exc).__name__}). Check the app logs for details.")
 
     case = st.session_state.get("risk_case")
     if case:
@@ -195,7 +201,7 @@ with insights_tab:
         st.caption("Reference values show the full cleaned analysis sample after the model's fitted preprocessing. SHAP summaries use a reproducible sample from the held-out test set.")
         st.info("**How to read SHAP:** Each feature's contribution shows how it shifts this case's model score from the model's baseline. A positive value pushes the estimated risk higher; a negative value pushes it lower. A larger absolute value means a stronger influence on this estimate. This describes how the model used the feature, not cause and effect in the real world.")
 
-        if case:
+        if case and case.get("explanation"):
             current_feature = case["explanation"]["features"][selected_feature]
             current_value = current_feature["model_value"]
             current_shap = current_feature["shap_value"]
@@ -207,7 +213,10 @@ with insights_tab:
             p3.metric("This case's SHAP contribution", f"{current_shap:+.3f}")
         else:
             current_feature = None
-            st.info("Submit a risk estimate in the Risk assessment tab to show where that case falls and its individual SHAP contribution.")
+            if case:
+                st.info("The reference distributions are shown above, but a case-specific SHAP value is unavailable for this runtime.")
+            else:
+                st.info("Submit a risk estimate in the Risk assessment tab to show where that case falls and its individual SHAP contribution.")
 
         distribution, contribution = st.columns(2)
         with distribution:

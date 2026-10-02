@@ -3,7 +3,6 @@ from pathlib import Path
 
 import joblib
 import pandas as pd
-from xgboost import DMatrix
 
 ROOT = Path(__file__).resolve().parents[1]
 MODEL_PATH = ROOT / "models" / "final_xgb_model.joblib"
@@ -49,6 +48,11 @@ def explain_prediction(values: dict, model=None) -> dict:
     XGBoost's ``pred_contribs`` returns TreeSHAP values in raw-margin (log-odds)
     space, including a final baseline contribution.
     """
+    # Keep the optional explainability import out of dashboard startup. The
+    # classifier remains loaded from the pinned model artifact when a case is
+    # submitted; DMatrix is needed only for per-case TreeSHAP contributions.
+    from xgboost import DMatrix
+
     model = model or load_model()
     raw_row = build_model_input(values)
     transformed = model.named_steps["preprocessor"].transform(raw_row)
