@@ -1,0 +1,17 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+credit-risk-env/
+.venv/
+venv/
+data/*.csv
+data/*.xls
+data/*.xlsx
+cs-training.csv
+cs-test.csv
+sampleEntry.csv
+GiveMeSomeCredit/*.xls
+notebook.ipynb
+*.log
+.streamlit/secrets.toml

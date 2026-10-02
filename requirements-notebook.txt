@@ -1,0 +1,6 @@
+-r requirements.txt
+jupyter>=1.0
+matplotlib>=3.8
+seaborn>=0.13
+statsmodels>=0.14
+shap>=0.46

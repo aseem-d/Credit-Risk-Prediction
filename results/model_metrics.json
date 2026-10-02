@@ -1,0 +1,11 @@
+{
+  "source": "notebooks/credit_risk_analysis.ipynb, held-out test set",
+  "evaluation": "Notebook evaluation; test_size=0.2, random_state=42, stratified split",
+  "models": [
+    {"name": "Logistic Regression", "roc_auc": 0.836128, "average_precision": 0.348515, "brier_score": 0.052968},
+    {"name": "Random Forest", "roc_auc": 0.856446, "average_precision": 0.380701, "brier_score": 0.049861},
+    {"name": "XGBoost", "roc_auc": 0.869623, "average_precision": 0.404935, "brier_score": 0.048735}
+  ],
+  "final_model": "XGBoost",
+  "final_model_threshold_metrics": {"accuracy": 0.9375, "precision": 0.5942028985507246, "recall": 0.20448877805486285, "f1": 0.3042671614100185, "roc_auc": 0.8696227728588869, "average_precision": 0.40493470355916517, "sensitivity": 0.20448877805486285, "specificity": 0.989998, "brier_score": 0.048735}
+}
