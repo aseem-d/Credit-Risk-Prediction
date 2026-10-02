@@ -2,11 +2,16 @@ import json
 from pathlib import Path
 
 import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
 import streamlit as st
 
 from src.model import predict_probability
+
+try:
+    import plotly.express as px
+    import plotly.graph_objects as go
+except ModuleNotFoundError:
+    # Streamlit Cloud may start before the optional plotting dependency is installed.
+    px = go = None
 
 ROOT = Path(__file__).resolve().parent
 GITHUB_URL = "https://github.com/aseem-d/Credit-Risk-Prediction"
@@ -61,41 +66,50 @@ with st.expander("About the model"):
 
 st.divider()
 st.subheader("Model performance")
+chart_metrics = metrics.set_index("name").reindex(["XGBoost", "Logistic Regression", "Random Forest"])
 col1, col2 = st.columns(2)
-with col1:
-    fig = px.bar(metrics, x="name", y="roc_auc", title="ROC-AUC", labels={"name": "Model", "roc_auc": "ROC-AUC"}, color="name")
-    for trace in fig.data:
-        if trace.name == "XGBoost":
-            trace.name = "<b>XGBoost</b>"
-    fig.update_xaxes(
-        tickmode="array",
-        tickvals=["XGBoost", "Logistic Regression", "Random Forest"],
-        ticktext=["<b>XGBoost</b>", "Logistic Regression", "Random Forest"],
-    )
-    st.plotly_chart(fig, width="stretch")
-with col2:
-    fig = px.bar(metrics, x="name", y="average_precision", title="Average Precision", labels={"name": "Model", "average_precision": "Average Precision"}, color="name")
-    for trace in fig.data:
-        if trace.name == "XGBoost":
-            trace.name = "<b>XGBoost</b>"
-    fig.update_xaxes(
-        tickmode="array",
-        tickvals=["XGBoost", "Logistic Regression", "Random Forest"],
-        ticktext=["<b>XGBoost</b>", "Logistic Regression", "Random Forest"],
-    )
-    st.plotly_chart(fig, width="stretch")
+if px is not None:
+    with col1:
+        fig = px.bar(metrics, x="name", y="roc_auc", title="ROC-AUC", labels={"name": "Model", "roc_auc": "ROC-AUC"}, color="name")
+        for trace in fig.data:
+            if trace.name == "XGBoost":
+                trace.name = "<b>XGBoost</b>"
+        fig.update_xaxes(tickmode="array", tickvals=["XGBoost", "Logistic Regression", "Random Forest"], ticktext=["<b>XGBoost</b>", "Logistic Regression", "Random Forest"])
+        st.plotly_chart(fig, width="stretch")
+    with col2:
+        fig = px.bar(metrics, x="name", y="average_precision", title="Average Precision", labels={"name": "Model", "average_precision": "Average Precision"}, color="name")
+        for trace in fig.data:
+            if trace.name == "XGBoost":
+                trace.name = "<b>XGBoost</b>"
+        fig.update_xaxes(tickmode="array", tickvals=["XGBoost", "Logistic Regression", "Random Forest"], ticktext=["<b>XGBoost</b>", "Logistic Regression", "Random Forest"])
+        st.plotly_chart(fig, width="stretch")
+else:
+    with col1:
+        st.markdown("**ROC-AUC**")
+        st.bar_chart(chart_metrics[["roc_auc"]], horizontal=True, x_label="ROC-AUC")
+    with col2:
+        st.markdown("**Average Precision**")
+        st.bar_chart(chart_metrics[["average_precision"]], horizontal=True, x_label="Average Precision")
 
 # Calibration coordinates are saved from the notebook's shared held-out predictions.
 curve_path = ROOT / "results" / "calibration_curves.json"
 if curve_path.exists():
     curves = json.loads(curve_path.read_text())
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(x=[0, 1], y=[0, 1], mode="lines", name="Perfect calibration", line={"dash": "dash", "color": "gray"}))
-    for model_name, values in curves.items():
-        label = "<b>XGBoost</b>" if model_name == "XGBoost" else model_name
-        fig.add_trace(go.Scatter(x=values["mean_predicted"], y=values["observed_frequency"], mode="lines+markers", name=label))
-    fig.update_layout(title="Calibration on the held-out test set", xaxis_title="Mean predicted probability", yaxis_title="Observed frequency")
-    st.plotly_chart(fig, width="stretch")
+    if go is not None:
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=[0, 1], y=[0, 1], mode="lines", name="Perfect calibration", line={"dash": "dash", "color": "gray"}))
+        for model_name, values in curves.items():
+            label = "<b>XGBoost</b>" if model_name == "XGBoost" else model_name
+            fig.add_trace(go.Scatter(x=values["mean_predicted"], y=values["observed_frequency"], mode="lines+markers", name=label))
+        fig.update_layout(title="Calibration on the held-out test set", xaxis_title="Mean predicted probability", yaxis_title="Observed frequency")
+        st.plotly_chart(fig, width="stretch")
+    else:
+        calibration_rows = [
+            {"Model": name, "Mean predicted probability": predicted, "Observed frequency": observed}
+            for name, values in curves.items()
+            for predicted, observed in zip(values["mean_predicted"], values["observed_frequency"])
+        ]
+        st.line_chart(pd.DataFrame(calibration_rows), x="Mean predicted probability", y="Observed frequency", color="Model")
 else:
     st.info("Calibration points are exported when the notebook's final evaluation section is run.")
 display_metrics = metrics.set_index("name").reindex(["XGBoost", "Logistic Regression", "Random Forest"])
